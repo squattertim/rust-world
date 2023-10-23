@@ -1,5 +1,5 @@
 [package]
-name = "transformer"
+name = "hello-rust"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 slug = "0.1.4"
+csv = { version = "1.1.6", features = [] }
