@@ -56,12 +56,13 @@ fn slug(string: String) -> Result<String, Box<dyn Error>> {
     Ok(slugify(string))
 }
 
+// TODO
 fn parse_csv(string: String) -> Result<String, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_reader(string.as_bytes());
-    let mut printable = String::new();
-    for result in rdr.records() {
-        let record = result.expect("a CSV record");
-        printable += format!("{:?}", record).as_mut_str();
+    let mut result = String::new();
+    for record in rdr.records() {
+        let formatted = format!("{:?}\n", record?);
+        result.push_str(formatted.as_str());
     }
-    Ok(printable)
+    Ok(result)
 }
