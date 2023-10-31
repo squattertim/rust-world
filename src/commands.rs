@@ -9,6 +9,7 @@ pub(crate) enum CmdType {
     Slugify,
     Csv,
     Error,
+    Exit,
 }
 
 #[derive(Debug)]
@@ -22,7 +23,7 @@ unsafe impl Send for Command {}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParseCommandError {
-    pub message: &'static str
+    pub message: &'static str,
 }
 
 impl FromStr for Command {
@@ -35,7 +36,8 @@ impl FromStr for Command {
             "nospaces" => Ok(Command { cmd: CmdType::Nospace, input: "".to_string(), result: "".to_string() }),
             "slugify" => Ok(Command { cmd: CmdType::Slugify, input: "".to_string(), result: "".to_string() }),
             "csv" => Ok(Command { cmd: CmdType::Csv, input: "".to_string(), result: "".to_string() }),
-            _ => Err(ParseCommandError {message: "Unknown command!"}),
+            "exit" => Ok(Command { cmd: CmdType::Exit, input: "".to_string(), result: "".to_string() }),
+            _ => Err(ParseCommandError { message: "Unknown command!" }),
         }
     }
 }
@@ -49,21 +51,27 @@ impl Command {
         self.result = match self.cmd {
             CmdType::Uppercase => {
                 self.input.to_uppercase()
-            },
+            }
             CmdType::Lowercase => {
                 self.input.to_lowercase()
-            },
+            }
             CmdType::Nospace => {
                 self.input.replace(" ", "")
-            },
+            }
             CmdType::Slugify => {
                 slugify(&self.input)
             }
             CmdType::Csv => {
-                self.input.split(',').map(|x| x.to_string()).collect::<Vec<String>>().join(",")
-            },
+                self.input.split(',')
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .join(";") // TODO - later
+            }
             CmdType::Error => {
                 self.result.as_str().to_string()
+            }
+            CmdType::Exit => {
+                std::process::exit(0);
             }
         }
     }

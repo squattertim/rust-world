@@ -1,7 +1,7 @@
 mod commands;
 
 use std::{io, thread, sync::mpsc, str::FromStr};
-use crate::commands::Command;
+use crate::commands::{Command};
 use crate::commands::CmdType;
 
 fn main() {
@@ -13,33 +13,16 @@ fn main() {
             io::stdin().read_line(&mut input).expect("Failed to read line");
             match input.split_whitespace().collect::<Vec<&str>>().as_slice() {
                 [ref _command] => {
-                    tx.send(Command {
-                        cmd: CmdType::Error,
-                        input: "".to_string(),
-                        result: "Please, pass  arguments in the form <command> <input>!".to_string(),
-                    }).unwrap();
+                    tx.send(match_cmd(_command, "".to_string())).unwrap();
                 }
-                [ref _command, ref _input] => {
-                    let cmd = Command::from_str(_command);
-                    match cmd {
-                        Ok(mut res) => {
-                            res.input = _input.to_string();
-                            tx.send(res).unwrap();
-                        }
-                        Err(_e) => {
-                            tx.send(Command {
-                                cmd: CmdType::Error,
-                                input: _input.to_string(),
-                                result: format!("Wrong command: {}", _command)
-                            }).unwrap();
-                        }
-                    }
+                [ref _command, _input @ ..] => {
+                    tx.send(match_cmd(_command, _input.join(" ").to_string())).unwrap();
                 }
                 _ => {
                     tx.send(Command {
                         cmd: CmdType::Error,
                         input: "".to_string(),
-                        result: "Too few or too many args!".to_string(),
+                        result: "Too few args!".to_string(),
                     }).unwrap();
                 }
             }
@@ -52,4 +35,21 @@ fn main() {
             println!("{}", received.result());
         }
     }).join().unwrap();
+}
+
+fn match_cmd(_command: &&str, input: String) -> Command {
+    let cmd = Command::from_str(_command);
+    match cmd {
+        Ok(mut res) => {
+            res.input = input;
+            res
+        }
+        Err(_e) => {
+            Command {
+                cmd: CmdType::Error,
+                input: input,
+                result: format!("Wrong command: {}", _command),
+            }
+        }
+    }
 }
