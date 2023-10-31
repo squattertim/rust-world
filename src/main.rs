@@ -2,6 +2,7 @@ mod commands;
 
 use std::{io, thread, sync::mpsc, str::FromStr};
 use crate::commands::Command;
+use crate::commands::CmdType;
 
 fn main() {
     let (tx, rx) = mpsc::channel::<Command>();
@@ -11,27 +12,34 @@ fn main() {
             let mut input = String::new();
             io::stdin().read_line(&mut input).expect("Failed to read line");
             match input.split_whitespace().collect::<Vec<&str>>().as_slice() {
-                [ref command] => {
+                [ref _command] => {
                     tx.send(Command {
-                        command: "".to_string(),
+                        cmd: CmdType::Error,
                         input: "".to_string(),
                         result: "Please, pass  arguments in the form <command> <input>!".to_string(),
                     }).unwrap();
                 }
-                [ref command, ref string] => {
-                    let cmd = Command::from_str(command);
+                [ref _command, ref _input] => {
+                    let cmd = Command::from_str(_command);
                     match cmd {
-                        Ok(res) => {
+                        Ok(mut res) => {
+                            res.input = _input.to_string();
                             tx.send(res).unwrap();
                         }
-                        _ => {}
+                        Err(_e) => {
+                            tx.send(Command {
+                                cmd: CmdType::Error,
+                                input: _input.to_string(),
+                                result: format!("Wrong command: {}", _command)
+                            }).unwrap();
+                        }
                     }
                 }
                 _ => {
                     tx.send(Command {
-                        command: "".to_string(),
+                        cmd: CmdType::Error,
                         input: "".to_string(),
-                        result: "Too many args!".to_string(),
+                        result: "Too few or too many args!".to_string(),
                     }).unwrap();
                 }
             }
@@ -39,8 +47,9 @@ fn main() {
     });
 
     thread::spawn(move || {
-        for received in rx {
-            println!("{}", received.result);
+        for mut received in rx {
+            received.process();
+            println!("{}", received.result());
         }
     }).join().unwrap();
 }
