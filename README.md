@@ -1,5 +1,7 @@
 # rust-world
 
 Rust Developer course homeworks
- - read from input
- - transform result
+ - reads from input
+ - transforms result
+ - runs in two threads
+ - uses channels
