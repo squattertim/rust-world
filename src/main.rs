@@ -12,10 +12,10 @@ fn main() {
             let mut input = String::new();
             io::stdin().read_line(&mut input).expect("Failed to read line");
             match input.split_whitespace().collect::<Vec<&str>>().as_slice() {
-                [ref _command] => {
+                [_command] => {
                     tx.send(match_cmd(_command, "".to_string())).unwrap();
                 }
-                [ref _command, _input @ ..] => {
+                [_command, _input @ ..] => {
                     tx.send(match_cmd(_command, _input.join(" ").to_string())).unwrap();
                 }
                 _ => {
