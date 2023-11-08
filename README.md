@@ -5,3 +5,4 @@ Rust Developer course homeworks
  - transforms result
  - runs in two threads
  - uses channels
+ - sends files
