@@ -2,9 +2,8 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
-use crate::client::messages::{deserialize_message, MessageType};
-use crate::client::messages::MessageType::Text;
-use crate::handle_error;
+use messages::{deserialize_message, handle_error, MessageType};
+use messages::MessageType::{File, Text};
 
 fn handle_client(mut stream: TcpStream) -> MessageType {
     let mut len_bytes = [0u8; 4];
@@ -35,11 +34,13 @@ pub fn listen_and_accept(address: &str, mut clients: HashMap<SocketAddr, TcpStre
                     _ => { println!("{:?}", mes) }
                 }
             }
-            MessageType::File(name, cont) => {
-                let mut file = fs::File::create(format!("{name}_transferred.png")).map_err(|err| {
+            File(name, cont) => {
+                let file_name = format!("{name}_transferred.png");
+                let mut file = fs::File::create(file_name.clone()).map_err(|err| {
                     handle_error(&format!("Error trying to create the file '{name}'"), err)
                 }).unwrap();
                 file.write_all(&*cont).expect("TODO: panic message");
+                println!("File transferred: {file_name}");
             }
             _ => {}
         }

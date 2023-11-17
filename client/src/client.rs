@@ -1,8 +1,6 @@
 use std::io::Write;
 use std::net::TcpStream;
-use crate::client::messages::{MessageType, serialize_message};
-
-pub(crate) mod messages;
+use messages::{MessageType, serialize_message};
 
 pub fn send_message(address: &str, message: &MessageType) {
     let serialized = serialize_message(message);
